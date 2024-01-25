@@ -1,1 +1,1 @@
-Hi My name is Daoyuan. Here is the webpage for ECE 5160 Fast Robots.
+Hi! This is Daoyuan. Welcome to my webpage for ECE 5160 Fast Robots.
