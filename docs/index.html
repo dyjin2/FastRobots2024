@@ -166,7 +166,7 @@
                         <div class="flex-grow-1">
                             <h3 class="mb-0">Workflow</h3>
                             <p>To start with, let me priefly introduce the general workflow of writing a new bluetooth function.</p>
-                            <p>On Artemis side: Twosteps. First, add CommandTypes, so that the board can handle commands accordingly. Second, add a case under switch function, define the specific function inside this case. Typical output steps are Serial.print() and Serial.println(), which print out to the serial monitor and send message via bluetooth, respectively.</p>
+                            <p>On Artemis side: Twosteps. First, add CommandTypes, so that the board can handle commands accordingly. Second, add a case under switch function, define the specific function inside this case. Typical output steps are Serial.print() and tx_characteristic_string.writeValue(), which print out to the serial monitor and send message via bluetooth, respectively.</p>
                             <p>On PC side: add CMD(Enum) in cmd_types.py just like CommandTypes</p>
                             <code>class CMD(Enum):<br>
                                     PING = 0<br>
@@ -225,12 +225,73 @@
 
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
-                            <h3 class="mb-0">5000-level: Electronic Tuner</h3>
-                            <p>On top of the MicrophoneOutput example, I write a code to make the board act like a electronic tuner. As the "Ode To Joy" goes, the board will identify the frequency of each note and print out a "C", "E" or "F" whenever it encounter one. (Unfortunately there are no "A"s in Ode To Joy.) And it will blink for 0.5 second when it hear a "C", which can be noticed in the video.</p>
-                            <p>The logic behind is pretty simple. We can search on the internet for the frequencies of musical notes. For example, C5 is 523.25Hz. But in my case, it turns out to be around 526Hz. Due to the deviation in pitch accuracy, and certain overtones produced during the instrument performance, it's hard to fully encode all the musical notes. But it can be an interesting task in the future practice.</p>
+                            <h3 class="mb-0">Task4: Data Transfer Rate</h3>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/rate.png" alt="">
+                            <p>Now we write a loop in Artemis (show in the picture above) that gets the current time in milliseconds and sends it to PC to be received and processed by the notification handler. Collect for around 5s and calculate the effective data transfer rate. As the video shows, during 5s the PC received around 200 timestamps, thus indicating a data transfer rate 40/s.</p>
                             <div class="embed-contaioner">
-                                <iframe width="640" height="360" src="https://www.youtube.com/embed/aDigYVjs5FY" frameborder="0" allowfullscreen></iframe>
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/KvO5sbs1OFo" frameborder="0" allowfullscreen></iframe>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task5: SEND TIME DATA</h3>                            
+                            <p>We also have different ways to transfer data. Instead of sending message once a time, we can store it in an array first. Once we send request from PC for the timestamps then the board send all its data to PC.</p>
+                            <p>To address this we first add the following lines in the loop (besides default write_data() and read_data()) to store timestamps. Once the array is full we overwrite old data with new data while always preserving the index information of the data in the array, allowing us to know from which position to start reading when sending data.</p>
+                            <code>
+                                timestamps[myindex] = (int)millis();<br>
+                                myindex += 1;<br>
+                                if (myindex > MAXSIZE){<br>
+                                myindex = 0; <br>
+                                }                                <br>
+                                write_data(); // Send data<br>
+                                read_data(); // Read data<br>
+                            </code>
+                            <p>After that we define "case: SEND_TIME_DATA" in Artemis and "SEND TIME DATA" in Python as shown in the video. In this example, I define the array length to be 255, each time we want to get timestamps from Artemis, it will send us this array in sequence.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/lUwt-pHpjF8" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task6: GET TEMP READINGS</h3>                                                        
+                            <p>To get synchronized time and temperature data, we simply add the corresponding part for temperature as timestamp in Task5. The video shows that both Artemis and PC fulfilled the requirement.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/PFC5NmynVaM" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task7: Discussion</h3>
+                            
+                            <p>We also have different ways to transfer data. Instead of sending message once a time, we can store it in an array first. Once we send request from PC for the timestamps then the board send all its data to PC.</p>
+                            <p>To address this we first add the following lines in the loop (besides default write_data() and read_data()) to store timestamps. Once the array is full we overwrite old data with new data while always preserving the index information of the data in the array, allowing us to know from which position to start reading when sending data.</p>
+                            
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Effective Data Rate And Overhead</h3>
+                            
+                            <p>We also have different ways to transfer data. Instead of sending message once a time, we can store it in an array first. Once we send request from PC for the timestamps then the board send all its data to PC.</p>
+                            <p>To address this we first add the following lines in the loop (besides default write_data() and read_data()) to store timestamps. Once the array is full we overwrite old data with new data while always preserving the index information of the data in the array, allowing us to know from which position to start reading when sending data.</p>
+                            
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Reliability</h3>
+                            
+                            <p>We also have different ways to transfer data. Instead of sending message once a time, we can store it in an array first. Once we send request from PC for the timestamps then the board send all its data to PC.</p>
+                            <p>To address this we first add the following lines in the loop (besides default write_data() and read_data()) to store timestamps. Once the array is full we overwrite old data with new data while always preserving the index information of the data in the array, allowing us to know from which position to start reading when sending data.</p>
+                            
                         </div>
                     </div>
 
