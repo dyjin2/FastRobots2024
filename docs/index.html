@@ -76,7 +76,7 @@
 
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
-                            <h3 class="mb-0">Lab Object</h3>
+                            <h3 class="mb-0">Lab Objective</h3>
                             <p>This part acts like a introduction to the Artemis board and the Arduino IDE. By testing examples in the library, we gradually become familiar with the process of using Arduino boards.</p>
                         </div>
                     </div>
@@ -142,20 +142,98 @@
 
                     <h2 class="mb-5">PART2: Bluetooth</h2>
 
-                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5"></div>
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
-                            <h3 class="mb-0">Discussion</h3>
-                            <div class="subheading mb-3">Setup</div>
-                            <p>Bring to the table win-win survirom generation X is on thhoring.</p>
-                            <div class="subheading mb-3">Codebase</div>
-                            <p>Bring to ffshoring.</p>
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>The objective of this part is to establish communication between PC and the Artemis board through the Bluetooth connection. On PC side we use Python3 in Jupyter notebook, while on the Artemis side we use the Arduino programming language, which is a simplified version of C/C++. We will get familiar with the process of sending data via Bluetooth that will be useful in future labs.</p>
                         </div>
-                    </div>  
+                    </div>
 
-                </div>
-                <img width="640" height="360" class="img-fluid img-centered" src="assets/img/profile.jpg" alt="">
-                <div class="embed-contaioner">
-                    <iframe width="640" height="360" src="https://www.youtube.com/embed/353Emwl2QN0" frameborder="0" allowfullscreen></iframe>
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <div class="subheading mb-3">1. Setup</div>
+                            <p>PC side: Install Python, Create and Activate Virtual Environment, Install Python Packages, Using Jupyter Server.</p>
+                            <p>Artemis side: Install ArduinoBLE, Using ble_arduino.ino.</p>
+                            <p>For this 2024 spring class, I'm using Win11 and I went through all the setups and tasks without using WSL, although I still spent some time trying to install it. It turns out that all the errors popped up can be fixed inside Windows11.</p>
+                            <div class="subheading mb-3">2. Codebase</div>
+                            <p>The Python and Artemis packages are provided to establish a basic communication between PC and the Artemis board through BLE. We will modify on top of the codebase</p>
+                            <p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Workflow</h3>
+                            <p>To start with, let me priefly introduce the general workflow of writing a new bluetooth function.</p>
+                            <p>On Artemis side: Twosteps. First, add CommandTypes, so that the board can handle commands accordingly. Second, add a case under switch function, define the specific function inside this case. Typical output steps are Serial.print() and Serial.println(), which print out to the serial monitor and send message via bluetooth, respectively.</p>
+                            <p>On PC side: add CMD(Enum) in cmd_types.py just like CommandTypes</p>
+                            <code>class CMD(Enum):<br>
+                                    PING = 0<br>
+                                    SEND_TWO_INTS = 1<br>
+                                    SEND_THREE_FLOATS = 2<br>
+                                    ECHO = 3<br>
+                            </code>
+                            <p>Use ble.send_command() and ble.receive_string() pair to send and receive message. Or use ble.start_notify() to start a notification handler, which we will cover below.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Establish Bluetooth Connection</h3>                            
+                            <p>First, upload the ble_arduino.ino into the board. Once finished, the MAC address will be printed in the serial monitor. Replace the first line in connection.yaml file with this address.</p>
+                            <p>Second, in order to differentiate from other students' boards, generate a new Universally Unique Identifier (UUID) by using lines below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/uuid.png" alt="">
+                            <p>Replace the second line in connection.yaml file with this UUID. Replace the BLEService UUID in ble_arduino.ino with this UUID too.</p>
+                            <p>Last, run the demo.ipynb notebook to make sure Bluetooth connection is established.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/rh8XcAS1fWI" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: ECHO</h3>
+                            <p>First we write a "ECHO" command to let Artemis send back a signitured string to test the send & receive functions via bluetooth. On PC side the code and result looks like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/echo_py.png" alt="">
+                            <p>On Artemis side the code looks like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/echo_ar.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: GET TIME MILLIS</h3>
+                            <p>On top of string transmission, we use millis() function in Artemis to send back the time information. On PC side the code and result looks like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/millis_py.png" alt="">
+                            <p>On Artemis side the code looks like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/millis_ar.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: Notification Handler</h3>
+                            <p>When we use ble.receive_string to receive information from Artemis, the entire Python program enters a waiting state and does not handle other tasks, which is very time-consuming in practical use. To address this issue, we developed the Notification Handler function. When we activate this function, the callback function is called to process the information every time Bluetooth receives it, and it does not occupy the thread when there is no new information. The following video shows the specific implementation and result:</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/aDigYVjs5FY" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Electronic Tuner</h3>
+                            <p>On top of the MicrophoneOutput example, I write a code to make the board act like a electronic tuner. As the "Ode To Joy" goes, the board will identify the frequency of each note and print out a "C", "E" or "F" whenever it encounter one. (Unfortunately there are no "A"s in Ode To Joy.) And it will blink for 0.5 second when it hear a "C", which can be noticed in the video.</p>
+                            <p>The logic behind is pretty simple. We can search on the internet for the frequencies of musical notes. For example, C5 is 523.25Hz. But in my case, it turns out to be around 526Hz. Due to the deviation in pitch accuracy, and certain overtones produced during the instrument performance, it's hard to fully encode all the musical notes. But it can be an interesting task in the future practice.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/aDigYVjs5FY" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             <hr class="m-0" />
