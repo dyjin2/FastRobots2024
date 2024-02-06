@@ -19,7 +19,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
             <a class="navbar-brand js-scroll-trigger" href="#page-top">
-                <span class="d-block d-lg-none">Clarence Taylor</span>
+                <span class="d-block d-lg-none">Daoyuan Jin</span>
                 <span class="d-none d-lg-block"><img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="assets/img/profile.jpg" alt="..." /></span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -70,20 +70,92 @@
             <!-- LAB 1 -->
             <section class="resume-section" id="lab1">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">LAB1: Artemis and Bluetooth</h2>
+                    <h2 class="mb-5">LAB1: The Artemis board and Bluetooth</h2>
+
+                    <h2 class="mb-5">PART1: The Artemis board</h2>
+
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
-                            <h3 class="mb-0">Senior Web Developer</h3>
-                            <div class="subheading mb-3">Intelitec Solutions</div>
-                            <p>Bring to the table win-win survival strategies to ensure proactive domination. At the end of the day, going forward, a new normal that has evolved from generation X is on the runway heading towards a streamlined cloud solution. User generated content in real-time will have multiple touchpoints for offshoring.</p>
+                            <h3 class="mb-0">Lab Object</h3>
+                            <p>This part acts like a introduction to the Artemis board and the Arduino IDE. By testing examples in the library, we gradually become familiar with the process of using Arduino boards.</p>
                         </div>
-                        <div class="flex-shrink-0"><span class="text-primary">March 2013 - Present</span></div>
                     </div>
-                    <img class="img-fluid img-centered" src="assets/img/profile.jpg" alt="">
-                    <div class="embed-contaioner">
-                        <iframe width="640" height="360" src="https://www.youtube.com/embed/353Emwl2QN0" frameborder="0" allowfullscreen></iframe>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <p>Setup Arduino environment is reletively simple. We first install the Arduino IDE and install the Sparkfun Appollo3 library accodring to the setup instructions. Then hook the Artemis board up to the computer, select a corresponding borad. Now we are good to uploud examples.</p>
+                        </div>
                     </div>
-                    
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Example: Blink it Up</h3>
+                            <p>As the first code we tested, the "Blink it up" example turns the LED on and off periodically.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/353Emwl2QN0" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Example: Serial</h3>
+                            <p>In this example we test the serial output and the function of serial monitor. When we send an input to interface, the Artemis board would send it back to the serial monitor as the video shows.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/CmzyefaJIZQ" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Example: analogRead</h3>
+                            <p>In the third example we test the fuction of temperature sensor and the board's ability to read analog values. As you can see in the video, the original "temp" value is around 33.9 Celsius. I hold the board still for a while and the reading goes up a little to 34.0 Celsius.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/lKkR116vCI0" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Example: MicrophoneOutput</h3>
+                            <p>This example tests the function of microphone unit. It has the ability to print out the loudest frequency the board received.</p>
+                            <p>Please turn down your volume a little bit before click the video. Thanks for your understanding!</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/2xZcox5h8T4" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Electronic Tuner</h3>
+                            <p>On top of the MicrophoneOutput example, I write a code to make the board act like a electronic tuner. As the "Ode To Joy" goes, the board will identify the frequency of each note and print out a "C", "E" or "F" whenever it encounter one. (Unfortunately there are no "A"s in Ode To Joy.) And it will blink for 0.5 second when it hear a "C", which can be noticed in the video.</p>
+                            <p>The logic behind is pretty simple. We can search on the internet for the frequencies of musical notes. For example, C5 is 523.25Hz. But in my case, it turns out to be around 526Hz. Due to the deviation in pitch accuracy, and certain overtones produced during the instrument performance, it's hard to fully encode all the musical notes. But it can be an interesting task in the future practice.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/Ku1s3unY-Mc" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="mb-5">PART2: Bluetooth</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5"></div>
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Discussion</h3>
+                            <div class="subheading mb-3">Setup</div>
+                            <p>Bring to the table win-win survirom generation X is on thhoring.</p>
+                            <div class="subheading mb-3">Codebase</div>
+                            <p>Bring to ffshoring.</p>
+                        </div>
+                    </div>  
+
+                </div>
+                <img width="640" height="360" class="img-fluid img-centered" src="assets/img/profile.jpg" alt="">
+                <div class="embed-contaioner">
+                    <iframe width="640" height="360" src="https://www.youtube.com/embed/353Emwl2QN0" frameborder="0" allowfullscreen></iframe>
                 </div>
             </section>
             <hr class="m-0" />
