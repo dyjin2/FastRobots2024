@@ -28,6 +28,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#home">Home</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#aboutme">aboutme</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab1">lab1</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab2">lab2</a></li>
                 </ul>
             </div>
         </nav>
@@ -53,9 +54,7 @@
                     </div>
                 </div>
             </section>
-            <hr class="m-0" />
-
-            
+            <hr class="m-0" />            
             
             <!-- About me -->
             <section class="resume-section" id="aboutme">
@@ -289,6 +288,120 @@
                         <div class="flex-grow-1">
                             <h3 class="mb-0">5000-level: Reliability</h3> 
                             <p>By comparing the stored data in Artemis and PC, I found that the computer read all the data published by Artemis, even if Artemis sends at a higher rate.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 2 -->
+            <section class="resume-section" id="lab2">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB2: IMU</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In the second lab we add a IMU to our robot (Artemis board). We record and process the Accelerometer and Gyroscope data, and implement a low pass filter to improve the data quality. We also test the RC car to get a sense of future work.</p>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: Set up the IMU</h3>
+                            <p>We use the Sparkfun breakout board as IMU, and install the SparkFun 9DOF IMU Breakout - ICM 20948 - Arduino Library through the Arduino library manager.</p>
+                            <p>Connect the IMU to the Artemis board using the QWIIC cable.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/imu.jpg" alt="">
+                            <p>Run basic example to read the sensor data. As you can see in this video, Accelerometer and Gyroscope both have X, Y, Z three dementional data. As I rotate, flip and accelerate the board, data change accordingly. Next we will use functions to convert these data to the gesture of the board.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/PwWLxMT4WnA" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>The definition of AD0_VAL is confusing. In my case I have to set to 0 to get the sensor data. However, on my board the ADDR jumper is soldered, which indicate I should use 1 to get default setting. Anyway, "0" works.</p>
+                            <p>Furthermore, as suggested in the instruction, I add a blink function in the setup of Artemis board. You can see the blue light blink three times on start-up.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Accelerometer</h3>
+                            <p>First we use the following equations the convert Accelerometer data into pitch and roll.</p>
+                            <img class="img-fluid img-centered" src="assets/img/lab2/accequation.png" alt="">
+                            <p>In Artemis it goes like this:</p>
+                            <code>
+                                pitch_a = atan2(myICM.accY(),myICM.accZ())*180/M_PI; <br>
+                                roll_a  = atan2(myICM.accX(),myICM.accZ())*180/M_PI; <br>
+                            </code>
+                            <p>To demonstrate the accuracy of Acc data, we show the output at {-90, 0, 90} degrees for pitch and roll respectively.</p>
+                            
+                            <!-- <p>part2 on frequency spectrum!!</p> -->
+
+                            <!-- LPF -->
+                            <p>Take pitch as an example, the implementation of a low pass filter is like this:</p>
+                            <code>
+                                const float alpha = 0.2;
+                                pitch_a_LPF[1] = alpha*pitch_a + (1-alpha)*pitch_a_LPF[0];
+                                pitch_a_LPF[0] = pitch_a_LPF[1];
+                            </code>
+                            <p>We have a list, pitch_a_LPF[], of two doubles, to record the previous and present pitch data, and implement LPF by adjusting the parameter alpha.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: Gyroscope</h3>
+                            <p>The reading of the gyroscope is the angular acceleration of the XYZ coordinates. By integrating them separately, we can obtain the angles of the three coordinates. Artemis implementation is as follows:</p>
+                            <code>
+                                pitch_g = pitch_g + myICM.gyrX()*dt; <br>
+                                roll_g = roll_g + myICM.gyrY()*dt; <br>
+                                yaw_g = yaw_g + myICM.gyrZ()*dt; <br>
+                            </code>
+                            <p>We can get pitch and roll output from Accelerometer and Gyroscope simultaniously, and the results are as follows:</p>
+                            <!-- picture -->
+                            <!-- filtered -->
+                            <!-- change sampling frequency -->
+                            <!-- conbine -->
+                            <p>To address the issue of high noise in accelerometer readings without cumulative errors, and low noise but cumulative errors in gyro readings, we merge the readings of both sensors using the following filter:</p>
+                            <img class="img-fluid img-centered" src="assets/img/lab2/combineequation.png" alt="">
+                            <p>Artemis implementation:</p>
+                            <code>
+                                pitch_g_delta = myICM.gyrX()*dt; <br>
+                                roll_g_delta = myICM.gyrY()*dt; <br>
+                                
+                                pitch_a = atan2(myICM.accY(),myICM.accZ())*180/M_PI; <br>
+                                roll_a  = atan2(myICM.accX(),myICM.accZ())*180/M_PI; <br>
+
+                                pitch = (pitch + pitch_g_delta)*(1-alpha) + pitch_a * alpha; <br>
+                                roll = (roll + roll_g_delta)*(1-alpha) + roll_a * alpha; <br>
+                                yaw = yaw + myICM.gyrZ()*dt; <br>
+                            </code>
+                            <!-- alpha -->
+                            <p>Alpha is </p>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task4: Sample Data</h3>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/rate.png" alt="">
+                            <p>Now we write a loop in Artemis (show in the picture above) that gets the current time in milliseconds and sends it to PC to be received and processed by the notification handler. Collect for around 5s and calculate the effective data transfer rate. As the video shows, during 5s the PC received around 200 timestamps, thus indicating a data transfer rate 40/s.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/KvO5sbs1OFo" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task5: Record a Stunt</h3>                                                        
+                            <p>To get a sense of how RC car moves, we use the remote control to drive the car.</p>
+                            <div class="embed-contaioner">
+                                <!-- <iframe width="640" height="360" src="https://www.youtube.com/embed/PFC5NmynVaM" frameborder="0" allowfullscreen></iframe> -->
+                            </div>
+                            <!-- <p>The robot can move in very quick motions and maneuver around objects very easily. While testing the robot, it was notice that the speed was unable to change.</p> -->
                         </div>
                     </div>
 
