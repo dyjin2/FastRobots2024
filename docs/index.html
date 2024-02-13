@@ -334,17 +334,47 @@
                                 roll_a  = atan2(myICM.accX(),myICM.accZ())*180/M_PI; <br>
                             </code>
                             <p>To demonstrate the accuracy of Acc data, we show the output at {-90, 0, 90} degrees for pitch and roll respectively.</p>
-                            
-                            <!-- <p>part2 on frequency spectrum!!</p> -->
-
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch_roll_0.png" alt="">
+                            <p>Picture1 pitch & roll @ 0 degree </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch-90.png" alt="">
+                            <p>Picture2 pitch @ -90 degree </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch90.png" alt="">
+                            <p>Picture3 pitch @ 90 degree </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/roll-90.png" alt="">
+                            <p>Picture4 roll @ -90 degree </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch90.png" alt="">
+                            <p>Picture5 roll @ 90 degree </p>
+                            <p>We can see that there is noise in the data but generally accurate.</p>
+                            <p>Upon applying linear regression to the three-point dataset, we observe a minor offset and a slope coefficient below 1.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/measurepitch.jpg" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/measureroll.jpg" alt="">
+                            <p>By manipulating the equations in the graph, we can derive the conversion factor. However, this data exhibits significant randomness and is heavily influenced by the desk's incomplete horizontal/vertical alignment during the experiment.</p>
+                            <!-- FFT -->
+                            <div class="subheading mb-3">Low Pass Filter</div>
+                            <p>The accelerometer is noisy. To address this issue by using low pass filter, we first to analyze the noise in the frequency spectrum</p>
+                            <p>Here is a helpful reference on <a href="https://pythonnumericalmethods.berkeley.edu/notebooks/chapter24.04-FFT-in-Python.html">Fourier Transform</a>.</p>
+                            <p>Take pitch data as an example, I collected nearly a thousand data points while the board was stationary. The collected data and the data after Fourier transformation are shown in the graph.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch.png" alt="">
+                            <p>From the results, it appears that the intensity of the noise is much lower than the intensity of the signal. Perhaps there is no need to add another low pass filter.</p>
+                            <p>In fact, by checking the datasheet, we found that the IMU has a built-in low-pass filter. However, upon closer examination, I believe that this function is not enabled in the mode we are using.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/builtinLPF1.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/builtinLPF2.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/builtinLPF3.png" alt="">
+                            <p>Anyway, we can still add an additional low-pass filter to see its effect.</p>
                             <!-- LPF -->
                             <p>Take pitch as an example, the implementation of a low pass filter is like this:</p>
                             <code>
-                                const float alpha = 0.2;
-                                pitch_a_LPF[1] = alpha*pitch_a + (1-alpha)*pitch_a_LPF[0];
-                                pitch_a_LPF[0] = pitch_a_LPF[1];
+                                const float alpha = 0.2; <br>
+                                pitch_a_LPF[1] = alpha*pitch_a + (1-alpha)*pitch_a_LPF[0]; <br>
+                                pitch_a_LPF[0] = pitch_a_LPF[1]; <br>
                             </code>
                             <p>We have a list, pitch_a_LPF[], of two doubles, to record the previous and present pitch data, and implement LPF by adjusting the parameter alpha.</p>
+                            <p>Mathematically, the cutoff frequency is defined as the frequency at which the output power of the filter is reduced to half of its maximum value. In terms of the transfer function of the filter, the cutoff frequency is the frequency at which the magnitude response is 0.707 times the maximum magnitude. Here we set alpha=0.2.</p>
+                            <p>This is the result of pitch data after applying the low pass filter:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/pitch_lpf.png" alt="">
+                            <p>In this experiment I recorded around 1000 data points. Starting from 500 I added some vibration to the Artemis board. In my opinion, the figure in the frequency spectrum is pretty decent.</p>
+                            <p>By contrast, the roll data was recorded simultaniously but without a low pass filter. Shown as below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/row_wo_lpf.png" alt="">
                         </div>
                     </div>
 
@@ -357,10 +387,21 @@
                                 roll_g = roll_g + myICM.gyrY()*dt; <br>
                                 yaw_g = yaw_g + myICM.gyrZ()*dt; <br>
                             </code>
-                            <p>We can get pitch and roll output from Accelerometer and Gyroscope simultaniously, and the results are as follows:</p>
-                            <!-- picture -->
-                            <!-- filtered -->
+                            <p>This video shows the pitch, roll, and yaw data we get from Gyroscope.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/Q25W1ZCYl1M" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>You can see from the video that the data of Gyroscope is pretty smooth ~</p>
+                            <p>Now we compare the pitch data from Accelerometer and Gyroscope. We can get pitch output from Accelerometer and Gyroscope simultaniously, and the results are as follows:</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/S5qKoHjtD2I" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>We can see that the pitch noise obtained from the accelerometer is very large, while the pitch obtained from the gyroscope is very smooth. However, the data obtained from the gyroscope has accumulated errors; when the board is stationary, the pitch calculated by the gyroscope still changes.</p>
                             <!-- change sampling frequency -->
+                            <p>Additionally, we change the sampling frequency to see how it affects the accuracy of gyroscope data.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/lowerf.png" alt="">
+                            <p>After lowering the frequency, the accumulated error in gyroscope data becomes more pronounced, while the accelerometer data remains unaffected. This indicates that the sampling frequency is crucial for the accuracy of gyroscope data.</p>
+                            <div class="subheading mb-3">Complimentary Filter</div>
                             <!-- conbine -->
                             <p>To address the issue of high noise in accelerometer readings without cumulative errors, and low noise but cumulative errors in gyro readings, we merge the readings of both sensors using the following filter:</p>
                             <img class="img-fluid img-centered" src="assets/img/lab2/combineequation.png" alt="">
@@ -377,7 +418,10 @@
                                 yaw = yaw + myICM.gyrZ()*dt; <br>
                             </code>
                             <!-- alpha -->
-                            <p>Alpha is </p>
+                            <p>Here alpha is set to 0.1 based on practical experience. Now the pitch and roll we get is both accurate and stable.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/iFTiorOolmY" frameborder="0" allowfullscreen></iframe>
+                            </div>
                         </div>
                     </div>
 
@@ -385,11 +429,22 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
                             <h3 class="mb-0">Task4: Sample Data</h3>
-                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/rate.png" alt="">
-                            <p>Now we write a loop in Artemis (show in the picture above) that gets the current time in milliseconds and sends it to PC to be received and processed by the notification handler. Collect for around 5s and calculate the effective data transfer rate. As the video shows, during 5s the PC received around 200 timestamps, thus indicating a data transfer rate 40/s.</p>
+                            <div class="subheading mb-3">Speed Up</div>
+                            <p>Just like the GET TEMP READINGS task in lab2, we store the timestamps and IMU data in an array and send to PC once the Artemis board received a command.</p>
+                            <p>The data we received on PC looks like this.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab2/speedup.png" alt="">
+                            <p>We can see that the sample rate is around 3.15ms, which is around 317Hz. I've written in the code that if the IMU data is not ready, 0 will be filled into the array. But we didn't receive 0s in the array which indicates that the main loop on the Artemis run slower than the IMU produces new values.</p>
+
+                            <div class="subheading mb-3">Data Storage</div>
+                            <p>Firstly, I think it makes more sense to store Timestamp, Accelerometer, Gyroscope, and ToF separately. It would be easier to locate data by index in separate arrays than a single combined one. Also, it would be more convenient to use separate arrays if we are dealing with different data types.</p>
+                            <p>Secondly, data types. I would use integers (2or4 bytes) for timestamp, floats (4 bytes) for Accelerometer (X,Y,Z) and Gyroscope (X,Y,Z) data to save storage.</p>
+                            <p>Lastly, the above mentioned sample rate would be too large to deal with. If we choose to record at a sample rate of around 50Hz, we will use 1400 bytes per second. With the 384kB internal storage we can store around 274s.</p>
+                            <div class="subheading mb-3">5S Time-stamped IMU Data</div>
+                            <p>Here is the video to demonstrate the ability to record 5 second of data.</p>
                             <div class="embed-contaioner">
-                                <iframe width="640" height="360" src="https://www.youtube.com/embed/KvO5sbs1OFo" frameborder="0" allowfullscreen></iframe>
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/VREiisrrA1g" frameborder="0" allowfullscreen></iframe>
                             </div>
+                            <p>One can tell from the timestamps that the time span is longer than 5s and we have recorded 255 sample points.</p>
                         </div>
                     </div>
 
@@ -399,9 +454,9 @@
                             <h3 class="mb-0">Task5: Record a Stunt</h3>                                                        
                             <p>To get a sense of how RC car moves, we use the remote control to drive the car.</p>
                             <div class="embed-contaioner">
-                                <!-- <iframe width="640" height="360" src="https://www.youtube.com/embed/PFC5NmynVaM" frameborder="0" allowfullscreen></iframe> -->
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/qss7fXpiP84" frameborder="0" allowfullscreen></iframe>
                             </div>
-                            <!-- <p>The robot can move in very quick motions and maneuver around objects very easily. While testing the robot, it was notice that the speed was unable to change.</p> -->
+                            <p>The RC car moves forward, backward, and turns at very high speeds. During remote control, each step is large, and fine adjustments cannot be made. It seems that the car's speed only have one gear, leaving a lot of room for optimization.</p>
                         </div>
                     </div>
 
