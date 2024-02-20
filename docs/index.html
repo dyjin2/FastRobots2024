@@ -29,6 +29,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#aboutme">aboutme</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab1">lab1</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab2">lab2</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab3">lab3</a></li>
                 </ul>
             </div>
         </nav>
@@ -463,7 +464,148 @@
                 </div>
             </section>
             <hr class="m-0" />
-            
+
+            <!-- LAB 3 -->
+            <section class="resume-section" id="lab3">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB3: Time of Flight Sensors</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>Adding Time of Flight (ToF) sensors to a robot can greatly enhance its ability to navigate and avoid obstacles effectively. ToF sensors work by emitting infrared light pulses and measuring the time it takes for the light to bounce back, allowing the robot to determine the distance to objects in its path.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <div class="subheading mb-3">1. I2C sensor address</div>
+                            <p>From the datasheet, the address of two ToF sensors are both 0x52. In following tasks we will find that it shows differently and we also need the address the issue of communicating with two identical sensors (originally with same address).</p>
+
+                            <div class="subheading mb-3">2. Using 2 ToF Sensors</div>
+                            <p>To use 2 ToF Sensors, the idea is to shutdown one of them using the XSHUT pin, change the address of the one which is online, then power up the other one.</p>
+                            
+                            <div class="subheading mb-3">3. Wiring diagram</div>
+                            <p>For QWIIC wires, Yellow-SCL, Blue-SDA, Red-VIN, Black-GND.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/color.jpg" alt="">
+                            <p>Here is the design of wiring. We use two long cables to connect ToF sensors and the short ones to connect the breakout board and the IMU. Because IMU will be put inside the robot while ToF sensors should be put outside.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/wiring.jpg" alt="">
+
+                            <div class="subheading mb-3">4. Placement of sensors in future labs</div>
+                            <p>I will put one sensor in front of the robot to detect incoming obstacles, the other one on one side of the robot (probably right side since cars are driving on the right side:)). It's worth mentioning that having two sensors set in front of the robot may interfere with each other because they will receive signals from each other.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: QWIIC breakout board connection</h3>
+                            <p>First we use a JST connector and a battery to power up the Artemis board and install the SparkFun VL53L1X 4m laser distance sensor library.</p>
+                            <p>Then we use solder a QWIIC cable to our ToF sensors and connect them to the QWIIC breakout board.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/connection.jpg" alt="">
+                            <p>The additional white wire will be discussed in following tasks.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Read I2C address</h3>
+                            <p>From the screenshot we can see that the address is 0x29, which is different from the datasheet (0x52).</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/address.png" alt="">
+                            <p>Through further research, we can discover that 0x29(00101001) is one bit moving left from 0x52(01010010), that's probably because the rightmost bit of 0x52 is used to indicate read/write status and it was taken off on Artemis side.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: Sensor data in different modes</h3>
+                            <p>The ToF sensors we use have two ranging mode, namely setDistanceModeShort() and setDistanceModeLong(), ranging 1.3m and 4m respectly by default.</p>
+                            <p>To select one the these two modes, I did a experiment to test there accuracy and repeatability.</p>
+                            <p>The video below shows my experiment setting:</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/DcPx9Uq8xpg" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>I chose 150, 300, 450, ..., 1200 eight sample points, got the average reading from both modes.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/modediff.png" alt="">
+                            <p>You can see that both modes have pretty accurate readings. Given that our robot can move in a fast speed (as shown in lab2), choosing the long range mode might be more usefu.</p>
+                            <p>I also use matplotlib to draw the picture as shown below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/modediff_python.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task4: 2 ToF sensors</h3>
+                            <p>In prelab we mentioned the issue of two ToF sensor sharing one default address. By checking the head file of ToF sensor library, we can see many functions that come in handy.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/tofclass.png" alt="">
+                            <p>We will use setI2CAddress() function to address the issue.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/twotof.png" alt="">
+                            <p>After changing the address of one of the sensors, we can call them separately just like in examples. One can see in the serial output that two sensors are working in parallel.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/wiring.jpg" alt="">
+                            <p>To illustrate, the white wire was used to shutdown sensor1.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task5: Tof sensor speed</h3>
+                            <p>Executing speed is critical in future labs. So we measure the time it takes for ToF sensors to receive ranging data.</p>
+                            <p>In this task the board will print time information no matter it receives a new ToF data or not.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/speedupcode.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/speedup.png" alt="">
+                            <p>Results show that it takes around 3ms for the board to run a loop, 60ms for the ToF sensors to receive a new data, and around 8ms to process the ToF data. The limiting factor here is probably the time it takes for sensors to transmit signals.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task6: Time v Distance</h3>
+                            <p>By combining previous labs the managed to use bluetooth to collect ToF data.</p>
+                            <p>After collecting, I used matplotlib to draw the graph.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/plot_python.png" alt="">
+                           
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Discussion on infrared transmission based sensors</h3>
+                            <p>Two common sensors based on infrared transmission are Infrared (IR) Proximity Sensors and Infrared Distance Sensors:</p>
+                            <p>1. Infrared Proximity Sensors</p>
+                            <p>Functionality: IR proximity sensors emit infrared light and measure the reflection of this light to detect nearby objects. They work based on the principle that objects reflect infrared light differently depending on their surface properties and distance from the sensor.</p>
+                            <p>Pros:<br>
+                                Simple and cost-effective.<br>
+                                Suitable for detecting the presence or absence of objects within a limited range.<br>
+                                Fast response time, making them suitable for applications requiring quick detection.</p>
+                            <p>Cons:<br>
+                                Limited range and accuracy compared to other distance sensors.<br>
+                                Susceptible to interference from ambient light sources, which can affect their reliability.<br>
+                                May have difficulty distinguishing between objects of similar reflectivity.</p>
+                            <p>2. Infrared Distance Sensors</p>
+                            <p>Functionality: Infrared distance sensors also emit infrared light, but they measure the time it takes for the emitted light to bounce back (Time of Flight principle) to calculate the distance to an object. They typically use methods like triangulation or phase-shift measurement to determine distance accurately.</p>
+                            <p>Pros:<br>
+                                Offer greater accuracy and range compared to IR proximity sensors.<br>
+                                Can provide precise distance measurements over longer distances.<br>
+                                Less affected by ambient light interference due to sophisticated modulation and signal processing techniques.</p>
+                            <p>Cons:<br>
+                                Generally more complex and expensive than IR proximity sensors.<br>
+                                May require calibration and adjustment for optimal performance.<br>
+                                Sensitive to environmental factors like temperature and humidity, which can affect their accuracy.</p>
+                    </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Sensitivity of sensors to colors and textures</h3>
+                            <p>Time of Flight sensors are generally less sensitive to variations in color and texture. As the picture shows I tested several material but didn't find much difference. However, transparent or translucent objects may absorb or scatter infrared light differently, impacting the accuracy of distance measurements obtained by ToF sensors.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab3/texture.jpg" alt="">
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
         </div>
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
