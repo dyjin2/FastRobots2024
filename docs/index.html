@@ -30,6 +30,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab1">lab1</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab2">lab2</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab3">lab3</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab4">lab4</a></li>
                 </ul>
             </div>
         </nav>
@@ -592,7 +593,6 @@
                                 May require calibration and adjustment for optimal performance.<br>
                                 Sensitive to environmental factors like temperature and humidity, which can affect their accuracy.</p>
                     </div>
-                    </div>
 
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
@@ -605,6 +605,164 @@
                 </div>
             </section>
             <hr class="m-0" />
+
+
+            <!-- LAB 4 -->
+            <section class="resume-section" id="lab4">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB4: Motors and Open Loop Control</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we'll replace the chip inside our racing car with the Artemis board, solder the motor drivers with the board and two motors separately. By the end of the lab, we'll be able to drive the car via pre-programmed codes or bluetooth connection.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <div class="subheading mb-3">1. Wiring Diagram</div>
+                            <p>As shown in the following diagram, in order to get enough current we need, we use both of two channels on one driver chip to actuate one motor. Note that channels on different chips should not be used to drive one motor, because they will interfere with each other.</p>
+                            <p>The two GND pins on a driver chip are essentially the same, so we only have to hook up one GND to the Artemis.</p>
+                            <p>In terms of analogWrite PIN, I chose A14 and A15 for one driver, A2 and A3 for the other. We only have to make sure the pin we use has the ability to write analog signals. The sequence is not that important because we can easily switch the forward/backward pin in Arduino code.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/wiringdiagram.png" alt="">
+                            <div class="subheading mb-3">2. Battery Discussion</div>
+                            <p>We will use separate batteries for the Artemis board and the motor drivers for several reasons.</p>
+                            <p>(1)Motors can generate electrical noise and voltage spikes, especially during sudden changes in speed or direction. This electrical noise can potentially interfere with the operation of the Artemis microcontroller, causing malfunctions or erratic behavior. By using separate batteries, we can isolate the power supplies for the Artemis and the motors, reducing the likelihood of interference.</p>
+                            <p>(2)Motors often require higher voltages and currents than microcontrollers. Using separate batteries allows us to choose a battery with appropriate voltage and current ratings for the motors without worrying about compatibility issues with the Artemis microcontroller.</p>
+                            <p>(3)Separating the power supplies can also improve the overall efficiency and performance of the system. Motors drawing large currents won't cause voltage droops in the power supply for the microcontroller, ensuring consistent and reliable operation of both the Artemis and the motors.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: Test analogWrite</h3>
+                            <p>Before connecting the driver to the real motors, we first test the analogWrite function of the combination of Artemis and motor driver.</p>
+                            <div class="subheading mb-3">Test Setup</div>
+                            <p>As you can see in the picture, I soldered up one of the motor driver with the Artemis board, and use power supply the power up the driver.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/driver_test.jpg" alt="">
+                            <div class="subheading mb-3">Power Supply Discussion</div>
+                            <p>For the setting of the power supply, I set it to 3.7V to keep up with the battery supply.</p>
+                            <div class="subheading mb-3">analogWrite code</div>
+                            <p>Before setup, we define the output pins for motor control.</p>
+                            <code>
+                                #define MOTOR_L_FORWARD 15 <br>
+                                #define MOTOR_L_BACKWARD 14 <br>                                
+                            </code>
+                            <p>In setup, we set the resolution of analogWrite output. By default it's 8 bits, so we can skip this line. We need to explicitly set it if we want 1-16 bits other than 8.</p>
+                            <code>
+                                analogWriteResolution(8); <br>                          
+                            </code>
+                            <p>In the loop, we write one pin to high and the other to 0.</p>
+                            <code>
+                                analogWrite(MOTOR_L_FORWARD, 127);    // 50% duty cycle w/ 8-bit resolution <br>
+                                analogWrite(MOTOR_L_BACKWARD, 0); <br>
+                                delay(1);    <br>                            
+                            </code>
+                            <p>The output looks like this.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/square50.jpg" alt="">
+                            <p>I also changed this value to 63(25%) and 191(75%).</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/square25.jpg" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/square75.jpg" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Take apart!</h3>
+                            <p>Now it's the time for us to take our RC cars apart. After removing the shell, we'll see two motors and the control PCB comes with it. Carefully cut the wires and get rid of the PCB and LEDs. Now we have two moters and one battery connector all with original wires.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/take_apart.jpg" alt="">
+                            <p>Note the each motor control two wheels on one side, which means it is a differential drive robot.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: Spinning Test</h3>
+                            <p>After removing the PCB and LEDs, we hook up the drive and the motor to get a physical test of analogWrite.</p>
+                            <div class="subheading mb-3">Single side test</div>
+                            <p>As you can see in this video, the motor first spin forward for 4s, rest for 1s, and then spin backward for another 4s.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/AfZmbdSbTwE" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <div class="subheading mb-3">All-wheel-drive with Battery Supply</div>
+                            <p>Repeat the above process for the other motor and driver, and hook up two drivers with the battery connector. Then we can let the car run by it self.</p>
+                            <p>It's worth mentioning that I forgot to pass the battery connector through the hole in the battery box before soldering it, which led to the need to start over. Thanks to TA Julian for providing me with another battery connector, allowing me to cut the cable in an easily accessible part, thus avoiding the need to re-solder the part connected to the driver.</p>
+                            <p>Now you can see both wheels spinning, and the car running on the ground.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/NBXfgtG5XlE" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>Notice that due to the different spin rate of these two motors, the car didn't run in a vary straight line. We'll do a calibration to fix this problem in the flollowing part.</p>
+                            <p>The picture of all the components secured.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/secured.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task4: Static Friction</h3>
+                            <p>Due to friction inside the motor and gear box, the motor cannot be actuated at PWM values just above 0. So it is important for us to measure this lower limit.</p>
+                            <p>To make my experiment easier, I add a "GO_STRAIGHT" command on top of the bluetooth control from previous labs. It can read in a integer from Jupyter lab and implement this speed for analogWrite.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/gostraight.png" alt="">
+                            <p>By increasing from 0, I found out that the lower limit is around 36-38 (out of 0-255).</p>
+                            <p>For on-axis turns, the threshold is much higher at around 175.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task5: Calibration</h3>
+                            <p>In the end of task3, we noticed the different spin rate of two motors. By implementing a calibration factor on one of the driver we can address this problem.</p>
+                            <p>By trail and error, I found out that the calibration factor is actually around 1. Other factors such as the alignment of the vehicle's front end with the straight line, and the installation of tires, have a greater impact on straight-line driving.</p>
+                            <p>Here is a video to demonstrate that my car can drive in a fairly straight line for more than 2m.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/WQJVCqYWy_k" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>Actually, I believe that slight deviations to the left or right during straight-line driving have limited impact on actual autonomous driving. These errors can be promptly corrected under the closed-loop control of distance sensors.</p>
+                        </div>
+                    </div> 
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task6: Open Loop Demonstration</h3>
+                            <p>Lastly, we wrap up with a open loop control demo, including straight lines, back up and turns.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/rciE1oPk6DI" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div> 
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: AnalogWrite Frequency</h3>
+                            <p>The analogWrite function in Arduino generates a PWM signal with a frequency typically around 490 Hz for most Arduino boards. This frequency is generally suitable for driving many types of motors, including DC motors, servos, and some types of stepper motors.</p>
+                            <p>However, for certain applications or specific motor types, a faster PWM frequency may offer benefits</p>
+                            <p>1. Reduced Audible Noise: Motors driven at higher PWM frequencies tend to produce less audible noise, which can be advantageous in applications where noise is a concern, such as in audio equipment or robotics used in quiet environments.</p>
+                            <p>2. Higher Control Resolution: Faster PWM signals allow for finer control of motor speed and position, as the shorter pulse widths provide more discrete steps in the motor's operation. This can be beneficial for applications requiring precise control, such as CNC machines.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">5000-level: Dynamic Friction</h3>
+                            <p>Once the car is in motion, the lower limit of PWM value should be lower than what was been found in task4, where the car starts from static.</p>
+                            <p>To measure the dynamic lower limit, I modified previous code as below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab4/gostraight_dy.png" alt="">
+                            <p>The car is given an initial speed which is higher than the lower limit we found in task4. Then we change the speed to what we want to test.</p>
+                            <p>I found out that the dynamic lower limit is around 32 (out of 0-255) in this test below.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/frSypnccBrk" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>One can tell whether the motors are running by listening to the sound. If you can hear the sound from the motors but the car stopped moving, the current value is below the lower limit.</p>
+                            <p>When the car is moving at its slowest speed, it takes nearly no time for it to stop.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
 
         </div>
         <!-- Bootstrap core JS-->
