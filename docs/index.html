@@ -31,6 +31,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab2">lab2</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab3">lab3</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab4">lab4</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab5">lab5</a></li>
                 </ul>
             </div>
         </nav>
@@ -758,6 +759,154 @@
                             <p>When the car is moving at its slowest speed, it takes nearly no time for it to stop.</p>
                         </div>
                     </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 5 -->
+            <section class="resume-section" id="lab5">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB5: Linear PID control and Linear interpolation</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>This lab is part of a series of labs (5-8) on PID control, sensor fusion, and stunts. This week we will do position control. Specifically, drive the robot towards a wall, then stop when it is 304mm away from the wall using feedback from the time of flight sensor.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/car.jpg" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <div class="subheading mb-3">Data Transfer</div>
+                            <p>Before implementing the PID controller, it's very important for us to setup a data transfer system via bluetooth.</p>
+                            <p>To begin with, I modified the notification handler from previous labs to receive data.</p>
+                            <code>
+                                def notification_handler(uuid, byte_array): <br>
+                                    global times, tof1, pwm<br>
+                                    time, tof11, pwm1 = ble.bytearray_to_string(byte_array)[:].split()<br>
+                                    times.append(int(time))<br>
+                                    tof1.append(int(tof11))<br>
+                                    pwm.append(int(pwm1))<br>
+                                ble.start_notify(ble.uuid['RX_STRING'], notification_handler);                   <br>  
+                            </code>
+                            <p>To make my debug and tuning easier, I wrote another two commands to communicate with the Artemis.</p>
+                            <p>First is a PID_SWITCH command. By sending this</p>
+                            <code>
+                                ble.send_command(CMD.PID_SWITCH, "1")        <br>  
+                            </code>
+                            <p>I can start the PID controll, wheras "0" to stop. Initially, it's set to "0" so that I can place the car easily.</p>
+                            <p>Next is a SET_PID_GAIN command. By sending this</p>
+                            <code>
+                                ble.send_command(CMD.SET_PID_GAIN, "0.15|0.01|0")    <br>  
+                            </code>
+                            <p>I can set Kp=0.15, Ki=0.01, Kd=0, which makes my tuning much easier.</p>
+                            <p>On Arduino side it looks like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/PIDGain.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: PID Controller</h3>
+                            <p>We now can dive into the controller itself. We have talked about PID Controller in class. The basic equation is as follow: </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/PID.png" alt="">
+                            <p>Proportional (P) Control: This term produces an output that is proportional to the current error signal, which is the difference between the desired setpoint and the actual value of the system being controlled.</p>
+                            <p>Integral (I) Control: This term integrates the error signal over time, which helps to eliminate steady-state errors by continuously adjusting the output based on the accumulated error. The integral term helps to reduce any long-term deviations from the setpoint.</p>
+                            <p>Derivative (D) Control: This term considers the rate of change of the error signal. It acts to dampen the system's response by anticipating future trends in the error signal.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/graph.png" alt="">
+                            <div class="subheading mb-3">PI Controller</div>
+                            <p>In my experiment, I chose to use a PI controller for several reasons.</p>
+                            <p>1. Steady-State Accuracy: The integral term in a PI controller continuously adjusts the control signal to eliminate steady-state errors. This means that the system output eventually reaches and maintains the desired setpoint accurately, even in the presence of disturbances or uncertainties.</p>
+                            <p>2. Less Sensitivity to Noise: In some cases, the derivative term in a PID controller can amplify noise in the system, leading to undesirable control action. By excluding the derivative term, PI controllers are less sensitive to noise, which can be beneficial in noisy environments or systems with high sensor noise.</p>
+                            <p>3. Reduced Complexity: Compared to PID controllers, PI controllers have simpler dynamics and fewer tuning parameters. This reduced complexity can lead to easier implementation, maintenance, and troubleshooting in control system applications.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Range/Sampling time discussion</h3>
+                            <p>The sampling frequency of the ToF sensor is relatively low, around 40ms in my case. And I'm alredy using the shortmode. It would be lower if I chose the longmode.</p>
+                            <p>So I kept using this mode and came up with two strategies which we will further discuss. Namely, controll with previous information and with extrapolation data.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: implementation</h3>
+                            <p>The implementation of PID controll is relatively simple. On Artemis it looks like this:</p>
+                            <code>
+                                while (!distanceSensor1.checkForDataReady()){delay(1);}<br> 
+                                time_last = time_current;<br> 
+                                time_current = (int)millis();<br> 
+                                int dt = time_current - time_last;<br> 
+                                int distance1 = distanceSensor1.getDistance();<br> 
+                                distanceSensor1.stopRanging();<br> 
+                                distanceSensor1.clearInterrupt();<br> 
+                                distanceSensor1.startRanging();<br> 
+                                error_current = distance1 - goal;<br> 
+                                error_sum = error_sum + int(error_current*dt/1000);<br> 
+                                int p = kp * error_current;<br> 
+                                int i = ki * error_sum;<br> 
+                                float d = kd * (error_current - error_previous)/dt;<br> 
+                                int speed = p+i+int(d);           <br>  
+                            </code>
+                            <p>In each loop we wait for ToF data ready, then get the time information and new ToF data. After that we compute three terms separately and add them together.</p>
+                            <p>The output "speed" will go to my actuate function and translate to PWM value. In my actuate function I wrote a mapping between demanding speed and PWM value, particularly considered the dead band tested in last lab.</p>
+                            <p>Here is a video to demonstrate the basic feedback controll.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/dUw9IGN3KbY" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>One thing I noticed during my debugging is that I have to set my integration term to 0 when I stop my PID controll. Otherwise this term will get weird.</p>
+                            <div class="subheading mb-3">Reaching Task Goal</div>
+                            <p>I tuned the PID gains according to the strategy we have talked about in class. And get the following combination and result.</p>
+                            <code>
+                                ble.send_command(CMD.SET_PID_GAIN, "0.1|0.01|0")    <br>  
+                            </code>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/R5ekaT-FFE4" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>You can see that the car bump into the carton no matter how I tune this. This is probably caused by the low controll frequency, which leaves up space to add extrapolation.</p>
+                            <p>The sensor readings and controll values over time are recorded as below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/tof-time2.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/pwm-time2.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task4: Extrapolation</h3>
+                            <p>Although the update frequency of ToF sensors are relatively low, we can increase our controll rate by predicting position information. By implementing a linear prediction on previous two data, we can get a more accurate new data rather than using the previous one.</p>
+                            <p>The pseudocode for extrapolation is as follow. We have to memorize two previous data points (timestamp+reading) to do linear extrapolation.</p>
+                            <code>
+                                if newdata: <br> 
+                                    updata previous data point<br>
+                                    controll according to new data <br>
+                                else:<br>
+                                    compute linear extrapolation<br>
+                                    controll according to extrapolation data <br>
+                            </code>
+                            <p>One thing I noticed during testing is that, we should avoid doing extrapolation on extrapolation data. I tried to record both raw data and extrapolation data, and do extrapolation on previous two data points no matter they are raw or extrapolated. But it turns out the data quality get even worse. Because the update rate of extrapolation is even higher than raw, tiny error in sensor reading will accumulate during extrapolation. So it's important for us to restrict extrapolation on raw data.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">(5000)Task5: Wind-up and discussion</h3>
+                            <p>Windup happens when the system's output saturates or reaches its limits, but the integral action continues to accumulate error. This can lead to overshooting, instability, or prolonged settling time when the output eventually returns within the allowable range.</p>
+                            <p>To address this problem, the simple way I use is just clamp the integral term to a certain range, for example below 100. This will address this issue while keep the ability to reach steady state.</p>
+                            <p>After implementing Extrapolation and addressing Wind-up, we can get a better controll outcome.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/xnmLqkr26xo" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>The sensor readings and controll values over time are recorded as below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/tof-time1.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/pwm-time1.png" alt="">
+                        </div>
+                    </div> 
+
 
                 </div>
             </section>
