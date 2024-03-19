@@ -32,6 +32,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab3">lab3</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab4">lab4</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab5">lab5</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab6">lab6</a></li>
                 </ul>
             </div>
         </nav>
@@ -904,6 +905,135 @@
                             <p>The sensor readings and controll values over time are recorded as below.</p>
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/tof-time1.png" alt="">
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/pwm-time1.png" alt="">
+                        </div>
+                    </div> 
+
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 6 -->
+            <section class="resume-section" id="lab6">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB6: Orientation Control</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>This lab is part of a series of labs (5-8) on PID control, sensor fusion, and stunts. Quite parallel to the last lab, in this one we will controll the yaw of our robots using the IMU.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/car.jpg" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Prelab</h3>
+                            <div class="subheading mb-3">Data Transfer</div>
+                            <p>Before implementing the PID controller, it's very important for us to setup a data transfer system via bluetooth.</p>
+                            <p>I did slight chances to last lab's code to transfer data.</p>
+                            <script src="https://gist.github.com/dyjin2/f46272cd254a329fb90880dcf6ae2c50.js"></script>
+                            <p>To make my debug and tuning easier, I wrote another two commands to communicate with the Artemis.</p>
+                            <p>First is a PID_TURN command. By sending this</p>
+                            <code>
+                                ble.send_command(CMD.PID_TURN, "1|90")        <br>  
+                            </code>
+                            <p>First item "1" start the PID controll, wheras "0" to stop. Initially, it's set to "0" so that I can place the car easily.</p>
+                            <p>Second item "90" is used to set the turning angel measured by degree according to Right-hand thread.</p>
+                            <p>Next is a SET_PID_GAIN command similar to last lab. By sending this</p>
+                            <code>
+                                ble.send_command(CMD.SET_PID_GAIN, "0.15|0.01|0.1")    <br>  
+                            </code>
+                            <p>I can set Kp=0.15, Ki=0.01, Kd=0.1, which makes my tuning much easier.</p>
+                            <p>On Arduino side it looks like this:</p>
+                            <script src="https://gist.github.com/dyjin2/17beaf079c1a6a6bf5f19484efe95797.js"></script>
+                            <p>Furthermore, the command to send back turing data is also modified accordingly on Artemis.</p>
+                            <script src="https://gist.github.com/dyjin2/01a2d558b2f61a2547098d9e67113f3e.js"></script>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: PID Controller</h3>
+                            <p>We now can dive into the controller itself. We have talked about PID Controller in class. The basic equation is as follow: </p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/PID.png" alt="">
+                            <p>Proportional (P) Control: This term produces an output that is proportional to the current error signal, which is the difference between the desired setpoint and the actual value of the system being controlled.</p>
+                            <p>Integral (I) Control: This term integrates the error signal over time, which helps to eliminate steady-state errors by continuously adjusting the output based on the accumulated error. The integral term helps to reduce any long-term deviations from the setpoint.</p>
+                            <p>Derivative (D) Control: This term considers the rate of change of the error signal. It acts to dampen the system's response by anticipating future trends in the error signal.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab5/graph.png" alt="">
+                            <div class="subheading mb-3">PID Controller</div>
+                            <p>In this lab, I chose to use a PID controller for several reasons.</p>
+                            <p>1. Steady-State Accuracy: The integral term in a PI controller continuously adjusts the control signal to eliminate steady-state errors. This means that the system output eventually reaches and maintains the desired setpoint accurately, even in the presence of disturbances or uncertainties.</p>
+                            <p>2. Damping Oscillations: The derivative action of a PID controller helps to dampen oscillations in the system's response, particularly during transient periods or when the system experiences sudden changes.</p>
+                            <p>3. Preventing Integral Windup: The derivative term indirectly helps to prevent integral windup by limiting the integral action during rapid changes in the error signal.</p>
+                            <p>4. Also the Gyroscope readings are relatively stable, which provides the foundation to implement derivative controll.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Range/Sampling time discussion</h3>
+                            <p>The sampling frequency of IMU is relatively high, beyond 300fps in my case. So I think there's no need to use extrapolation and I can simply put the control loop inside myICM_dataReady function.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task3: implementation</h3>
+                            <p>Here I first implement a turning controll without bluetooth</p>
+                            <p>The PID controll code on Artemis looks like this:</p>
+                            <script src="https://gist.github.com/dyjin2/9f372cea8181dd6a0387cae0ad53e9de.js"></script>
+                            <p>In each loop we wait for IMU data ready, then get the time information and new Gyroscope data. After that we compute three terms separately and add them together.</p>
+                            <p>In the end, we have to write a function to translate the PID result to wheel controll. For turning it's as follow:</p>
+                            <script src="https://gist.github.com/dyjin2/8931d65dd2c2021f0de03d5a7e376f81.js"></script>
+                            <p>Here you can see that there is a mapping between PID output and analogWrite range. The dead band for turning is relatively larger than moving straightward.</p>
+                            <p>Here is a video to demonstrate the basic PID turning controll.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/KCO55fkkSpo" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>In this video the target angle is set to 90. As you can see, the car tried to maintain at 90 degrees when I tried to interrupt it.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task4: Bluetooth and data collection</h3>
+                            <p>After that I combined Bluetooth controll.</p>
+                            <p>I tuned the PID gains according to the strategy we have talked about in class. First get the following combination without derivative term.</p>
+                            <code>
+                                ble.send_command(CMD.SET_PID_GAIN, "0.3|0.01|0")    <br>  
+                            </code>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/0TlBxTi2wk4" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab6/thetatime-overshoot.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab6/pwmtime-overshoot.png" alt="">
+                            <p>You can see that there is a large overshoot. We can add a derivative term to prevent this.</p>
+                            <code>
+                                ble.send_command(CMD.SET_PID_GAIN, "0.4|0.01|0.1")    <br>  
+                            </code>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/K-WE8V_OYYc" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab6/thetatime.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab6/pwmtime.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">(5000)Task5: Wind-up and discussion</h3>
+                            <p>Windup happens when the system's output saturates or reaches its limits, but the integral action continues to accumulate error. This can lead to overshooting, instability, or prolonged settling time when the output eventually returns within the allowable range.</p>
+                            <p>To address this problem, the simple way I use is just clamp the integral term to a certain range, for example below 30. This will address this issue while keep the ability to reach steady state.</p>
+                            <p>After addressing Wind-up, I did more test on 30 degrees and 180 degrees to show the car's ability to make turns.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/DOCUDk4pKtI" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/0V8kHuGMhws" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <div class="subheading mb-3">Further Discussion</div>
+                            <p>To control the orientation while the robot is driving forward or backward, we can simply add up the controll command for both straightward and turning, with some calibration factors to balance the contribution of both motions.</p>
                         </div>
                     </div> 
 
