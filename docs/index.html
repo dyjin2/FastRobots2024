@@ -33,6 +33,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab4">lab4</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab5">lab5</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab6">lab6</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab7">lab7</a></li>
                 </ul>
             </div>
         </nav>
@@ -1034,6 +1035,78 @@
                             </div>
                             <div class="subheading mb-3">Further Discussion</div>
                             <p>To control the orientation while the robot is driving forward or backward, we can simply add up the controll command for both straightward and turning, with some calibration factors to balance the contribution of both motions.</p>
+                        </div>
+                    </div> 
+
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 7 -->
+            <section class="resume-section" id="lab7">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB7: Kalman Filter</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we will implement a Kalman Filter, which can supplement our slowly sampled ToF values to make our controll smoother.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task1: Estimate drag and momentum</h3>
+                            <p>Before implementing the Kalman Filter, we first have to model the state space of our robot. Specifically, estimate the drag and momentum terms for our A and B matrices.</p>
+                            <p>To get these parameters, we will drive our robot towards a wall from stationary position, record the process of acceleration and steady speed, and analyze the speed graph.</p>
+                            <p>Note that the floor conditions should remain similar between the experiment from which we model these parameters and the experiment we want to implement KF.</p>
+                            <P>Because I did my position control on a carpet, I went back to the same place to model my state space.</P>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://www.youtube.com/embed/OhSTQ3oz_lw" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>The motor output is set at PWM 220 out of 255. I recorded data from ToF sensor and time stamps, then calculated the speed.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/tof-time.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/speed-time.png" alt="">
+                            <p>From the speed graph, we can read the steady state speed, the speed at 90% risetime, and 90% rise time.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/plot-time.png" alt="">
+                            <p>The steady state speed is around 2.8m/s, 90% rise time is around 0.65s.</p>
+                            <p>Using these data, we can calculate drag and momentum from these two equations:</p>
+                            <img class="img-fluid img-centered" src="assets/img/lab7/two_equation.png" alt="">
+                            <p>And get d = 220/2800 = 0.0786, m = -d*650/ln(0.1) = 0.0341.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task2: Implement Kalman Filter</h3>
+                            <div class="subheading mb-3">Initialize KF</div>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/steadystate_equation.png" alt="">
+                            <p>From first task we get our A, B, C matrices, and we will discretize them in the following code</p>
+                            <script src="https://gist.github.com/dyjin2/d7a5ae94fc717f1e1235e2374360bc82.js"></script>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/parameters.png" alt="">
+                            <p>Then we initialize process and sensor noise covariance matrices</p>
+                            <script src="https://gist.github.com/dyjin2/47540f7b6807d051c80d053c007a719f.js"></script>
+                            <p>Finally we can initialize the state</p>
+                            <script src="https://gist.github.com/dyjin2/b1656009b882ad4d03323c6486ad0864.js"></script>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/kf_equation.png" alt="">
+                            <p>We already have the KF function from class, simply call this function in every iteration as below.</p>
+                            <script src="https://gist.github.com/dyjin2/a5d83b9a2631225b2603b8395e85e04c.js"></script>
+                            <p>Now we get the output from Kalman Filter.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/kf-result.png" alt="">
+                            <p>You can see that the trend of KF line is highly consistent with the observed ToF results, but it's smoother.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">(5000)Task3: Faster Frequency</h3>
+                            <p>Even if we don't have a ToF reading, we can still get a update prediction from the Kalman Filter.</p>
+                            <p>In the following example, I insert a timestamp between each ToF reading to enhance prediction frequency. </p>
+                            <script src="https://gist.github.com/dyjin2/b1fe20bb8f76f87af4a6d5b7c6d70c13.js"></script>
+                            <script src="https://gist.github.com/dyjin2/fd0732f680fc78c3f83c1abb1447a4ae.js"></script>
+                            <p>For each ToF&PWM reading, I would update twice, one with ToF, the other without ToF. Thee output shows like this:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab7/kf-hf-result.png" alt="">
                         </div>
                     </div> 
 
