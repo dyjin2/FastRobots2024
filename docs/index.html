@@ -34,6 +34,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab5">lab5</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab6">lab6</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab7">lab7</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab8">lab8</a></li>
                 </ul>
             </div>
         </nav>
@@ -1110,6 +1111,60 @@
                         </div>
                     </div> 
 
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 7 -->
+            <section class="resume-section" id="lab8">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB8: Stunts!</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we will combine everything we've done up till now to do fast stunts. We can choose between position control (flip) and orientation control (drift).</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Task: Drift!!!</h3>
+                            <p>In this lab I chose to do a drift, although technically it should not be called one. </p>
+                            <p>It's basically a combination of driving towards the wall, do a 180 degree turn, and speed up again. However, because our car has built up momentum during the first phase, the 180 degree turn would look like a drift.</P>
+                            <p>I also added some tricks in the end to make it more like a drift.</p>
+                            <p>Here I first show the result of my basic setting of position control:</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/2SMTMtwfK4s?feature=share" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>To get this, I combined several modules from previous labs, and constructed this pseudocode structure:</p>
+                            <script src="https://gist.github.com/dyjin2/0f6cdbbfe0b557e7ae051e1ef2068fb2.js"></script>
+                            <p>In order to get sensors'data, the robot first collects and records them in each loop. Then it will select the task according to the task flags, and complete each task in sequence.</p>
+                            <p>After completing all the tasks, I will collect data via bluetooth.</p>
+                            <p>The sensors' data of this demo is shown below.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab8/gyro-time.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab8/tof-time.png" alt="">
+                            <p>Note that the Gyro data is updated in each loop, but the ToF data is not available in each loop. Simply waiting for ToF data in every loop will decrease my processing frequency, what I did is checking the availability of ToF data in every loop and record it when it's available. Thus you can see that the graph of ToF data looks like spikes cause when there's no data it shows 0.</p>
+                            <p>However, this basic setting is not very stable as the spin rate is too fast for the IMU to record, failure happens frequently as this one.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/1SPzCUgZ03o" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>Then I tried to lower the spinning speed a little bit. Furthermore, I figured out that to make it more like a drift, I don't have to use zero point turn, which means if I want the car to make a left drift, I can set the right wheels spinning forward and the left wheels spinning backward but not necessarily at same speed. I can use left wheels mainly as a brake and use right ones to spin. This will result in a drift-like turn.</p>
+                            <p>The following video shows the result.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/sU7Yb6wuhxU?feature=share" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>In order to showcase I can reproduce this I did two more recordings.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/cVUeXQ8RQkg?feature=share" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/pIg-yrhTfFc" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <P>That's it for my drift stunt!</P>
+                        </div>
+                    </div>
 
                 </div>
             </section>
