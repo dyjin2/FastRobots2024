@@ -35,6 +35,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab6">lab6</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab7">lab7</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab8">lab8</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab9">lab9</a></li>
                 </ul>
             </div>
         </nav>
@@ -1116,7 +1117,7 @@
             </section>
             <hr class="m-0" />
 
-            <!-- LAB 7 -->
+            <!-- LAB 8 -->
             <section class="resume-section" id="lab8">
                 <div class="resume-section-content">
                     <h2 class="mb-5">LAB8: Stunts!</h2>
@@ -1163,6 +1164,87 @@
                                 <iframe width="640" height="360" src="https://youtube.com/embed/pIg-yrhTfFc" frameborder="0" allowfullscreen></iframe>
                             </div>
                             <P>That's it for my drift stunt!</P>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+
+            <!-- LAB 9 -->
+            <section class="resume-section" id="lab9">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB9: Mapping</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we will map an arena. We will first use the robot to scan the terrain at five positions using ToF sensors. Then complete the map construction through a series of transformations.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Part1: Orientation control</h3>
+                            <p>The manual provides us with three methods for controlling angles, namely open loop control, orientation control, and angular speed control.</p>
+                            <p>I chose to use orientation control which I can modify from previous labs. I set the angular control goal to 20 degree, which ideally would lead to 18 sample points per round.</p>
+                            <p>Because we don't have the ground truth for angular value (the angle is calculated from integration), I didn't run the angular control throughout the spin. Instead, I reset the control after each 20 degree turn.</p> 
+                            <p>Because the external environment is essentially unchanged, I believe this control strategy makes each rotation more independent and controllable.</p>
+                            <p>Here is a sample video of the orientation control:</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/-SZ4pfU7M9E" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>I initially planned to test the actual rotation results and adjust the angle for each rotation based on the actual number of rotations in one cycle. However, I found that this was not necessary, as the control of the rotations is already quite accurate.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Part2: Execute the Scan</h3>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/pic.jpg" alt="">
+                            <p>Once the rotation control is determined, I can specify my scanning strategy. Below is the pseudocode for the scanning process.</p>
+                            <script src="https://gist.github.com/dyjin2/d3a1bd7985113c9f1cb4985547e2c168.js"></script>
+                            <p>By using notification_handler from previous labs, I got the ToF readings from the robot. Then I sanity checked the data by plotting them on a polar coordinate map:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/code1.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/sample1_org.png" alt="">
+                            <p>The result is quite good in my opinion. Note that the drawn line overlaps with itself in some parts, because I collected data points exceeding 360 degrees. This overlap indicates the reproducibility of the results.</p>
+                            <p>Next, we need to transform the data into Cartesian coordinates for ease of merging.</p> 
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/convert.png" alt="">
+                            <p>In addition to this, we should also recall that the ToF sensor is not located on the origin of the rotation. For simplicity we assume that the robot is rotating in place, then we need to measure the position from the sensors to the center of the robot as compensation for the readings.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/compensate.jpg" alt="">
+                            <p>The compensation is set to 70mm. Furthermore, I also corrected the initial angle of the robot. </p>
+                            <p>Finally, I got the map in Cartesian coordinates:</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/plot1.png" alt="">
+                            <p>Through the same process, I obtained maps for other four sampling points, here are 4 polar maps for sanity check.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/polar2.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/polar3.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/polar4.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/polar5.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Part3: Merge the Maps</h3>
+                            <p>To begin with, the separate maps I've shown are in sequence inside this picture.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/sequence.jpg" alt="">
+                            <p>In order to merge these maps, we first need to determine the origin of one of the maps as the origin for the fused map. Then, we calculate the transformation matrices for the other four maps in order to merge them.</p>
+                            <p>The second point is chosen to be the origin of the merged map. Because I maintained a consistent initial orientation of the robot during the scanning process, there is no need for rotation between these five maps, only translation.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/matrix.png" alt="">
+                            <p>The rotation matrix here should be an identity matrix, and the z term in translation is also 0.</p>
+                            <p>We only need to count the number of tiles(1ft/tile) between each sampling point to obtain the corresponding x and y terms.</p>
+                            <p>After translation, we got the merged map as following.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/merged.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Part4: Line-Based Map</h3>
+                            <p>Finally, we can add the "ground truth" of walls and obstacles on to the map, which makes it useful in following labs.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/lined_map.png" alt="">
+                            <p>As you can see, the boundaries of the walls are clearly delineated, but there is a larger error in outlining the contours of the cardboard boxes in the arena. This may be due to differences in material of the obstacles, which could result in variations in the performance of the ToF sensors.</p>
                         </div>
                     </div>
 
