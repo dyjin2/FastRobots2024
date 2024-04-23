@@ -36,6 +36,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab7">lab7</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab8">lab8</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab9">lab9</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab10">lab10</a></li>
                 </ul>
             </div>
         </nav>
@@ -1245,6 +1246,80 @@
                             <p>Finally, we can add the "ground truth" of walls and obstacles on to the map, which makes it useful in following labs.</p>
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab9/lined_map.png" alt="">
                             <p>As you can see, the boundaries of the walls are clearly delineated, but there is a larger error in outlining the contours of the cardboard boxes in the arena. This may be due to differences in material of the obstacles, which could result in variations in the performance of the ToF sensors.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 10 -->
+            <section class="resume-section" id="lab10">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB10: Grid Localization using Bayes Filter</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we will implement grid localization using Bayes filter. The manual for this experiment provided us with a great framework and a lot of useful information.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Function1: Compute Control</h3>
+                            <p>Firstly, we have a function to compute the actual control result based on actual current pose and previous pose.</p>
+                            <script src="https://gist.github.com/dyjin2/95c874a7f2033b7317cabf59562f61bb.js"></script>
+                            <p>Note: Pay attention to the order of parameters in atan2 function.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Function2: Odom Motion Model</h3>
+                            <p>After we obtain observations of the motion that occurred, we can use the Gaussian distribution to calculate the probability of this motion actually occurring under the given control command.</p>
+                            <script src="https://gist.github.com/dyjin2/0b4834237e202065f5a70ad0dce1fe78.js"></script>
+                            <p>I initially planurate.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Function3: Prediction Step</h3>
+                            <p>Now we have enough information to update our predictions. For each grid, the new probability is the sum of the probabilities of moving to that grid from every other grid. This is why there are six nested loops in the code: the first three loops iterate over every grid, and the last three loops iterate over all grids from the previous time step to update the probabilities for this grid.</p>
+                            <script src="https://gist.github.com/dyjin2/5c1e6120c0956ed25c43cd3d503b7d4a.js"></script>
+                            <p>Note that we set a threshold here -- 0.0001. The threshold is used to skip calculations for some grids in order to improve computational speed. These grids with probabilities smaller than the threshold have minimal impact on the result.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Function4: Sensor Model</h3>
+                            <p>In this step, we will obtain the probabilities of observations from the sensor, which will be used in the final step to correct our predictions.</p>
+                            <script src="https://gist.github.com/dyjin2/91d5fc2b2c79dc6205e69dcb412ec627.js"></script>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Function5: Update Step</h3>
+                            <p>Finally, in the last step, we multiply the probabilities obtained from prediction by the probabilities from the sensor model, and then normalize them to obtain the final probability for each grid.</p>
+                            <script src="https://gist.github.com/dyjin2/f84de3c4efd9cd4e99d6f74c951a841f.js"></script>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Simulation Result</h3>
+                            <p>The completion of the simulation is depicted below. The green path represents ground truth, the blue path represents the robot's belief, and the red path represents odometry measurements.</p>
+                            <div class="embed-contaioner">
+                                <iframe width="640" height="360" src="https://youtube.com/embed/cvXI-rzaiNI" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p>You can see that the results of Bayes Filter look much better than pure odometry measurements.</p>
+                            <p>Here I selected some output data of several steps.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp1.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp5.png" alt="">
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp14.png" alt="">
                         </div>
                     </div>
 
