@@ -37,6 +37,8 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab8">lab8</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab9">lab9</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab10">lab10</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab11">lab11</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#lab12">lab12</a></li>
                 </ul>
             </div>
         </nav>
@@ -1320,6 +1322,119 @@
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp1.png" alt="">
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp5.png" alt="">
                             <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab10/exp14.png" alt="">
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 11 -->
+            <section class="resume-section" id="lab11">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB11: Localization on the real robot</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>In this lab we will implement Lab10 on our real robot.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Code Base</h3>
+                            <p>In this lab, we've been provided with a complete localization codebase that implements the estimation of the robot's position using a Bayes Filter. All we have to do is write a function to allow this localization module to receive real observation data from the robot, and modify the corresponding code on Artemis to meet the relevant requirements.</p>
+                            <p>To verify we have downloaded the codebase correctly, we first tested the localization function in simulation, here is the final plot of my test.</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab11/screenshot.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">A little detour</h3>
+                            <p>The other parts of the experiment are relatively straightforward; but I encountered troubles in two parts.</p>
+                            <p>The first one occurred during the setup of the Bluetooth connection. The code we brought over from the previous lab suddenly couldn't establish a connection between the computer and the robot's Bluetooth. After debugging for a while, TA helped us identify that it was an issue with some imported libraries. Thanks to Liam for quickly providing a solution!</p>
+                            <p>The second issue arose during the exchange of information between the computer and the robot. My original implementation allowed the robot to receive commands, but the computer couldn't receive messages sent back from the robot. (I verified this by directly connecting the robot to the computer via Arduino's serial port.) I'll explain my solution in detail in the next section. I want to express my gratitude to Larry for spending a lot of time helping me debug this!</p>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Perform Observations</h3>
+                            <p>A structure of the RealRobot class was given. Inside this class we need to modify this perform_observation_loop function.</p>
+                            <p>We need to include (1) notification handler, (2) sending commands, and (3) receiving messages from the robot.</p>
+                            <p>Here is the code of my implementation:</p>
+                            <script src="https://gist.github.com/dyjin2/5ab7a12ca680515b89a01f3f61986405.js"></script>
+                            <p>At the beginning, my code's while loop didn't include a wait statement; it only had "pass". Through debugging, we concluded that this was likely the reason why my computer couldn't receive messages sent back from the robot. Because this while loop was continuously looping without any delay, it essentially occupied all processes, preventing the notification handler from functioning properly, and thus I couldn't receive any information.</p>
+                            <p>Afterward, I added "await asyncio.sleep(3)" within the while loop and defined the function as asynchronous (async), which resolved the issue.</p>
+                            <p>In addition, because the Arduino processed TOF data in millimeters (mm), while through debugging, I found that the codebase here was using meters, so before returning, I divided the numpy array by 1000.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Experiment Results</h3>
+                            <p>Above are all the code changes required for this lab. Now, let's examine the localization results of the robot at four sample locations.</p>
+                            <p>Here is screenshot of the first sample, (-3 ft ,-2 ft ,0 deg)</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab11/sample1.png" alt="">
+                            <p>The output on the left indicates that my code is functioning properly. I also printed the TOF readings for the 18 sample locations. However, the localization results are not entirely accurate, indicating that there may be other bugs that need to be resolved. On the plot on the right, the green dots represent the ground truth, and the blue dots represent the estimation.</p>
+                            <p>Similarly, here are plots for other three sample points.</p>
+                            <p>Sample2, (0 ft,3 ft, 0 deg):</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab11/sample2.png" alt="">
+                            <p>Sample3, (5 ft,-3 ft, 0 deg):</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab11/sample3.png" alt="">
+                            <p>Sample4, (5 ft,3 ft, 0 deg):</p>
+                            <img width="640" height="360" class="img-fluid img-centered" src="assets/img/lab11/sample4.png" alt="">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Discussion</h3>
+                            <p>The estimation results obtained in this experiment show significant discrepancies from the ground truth. Possible reasons for this could be unresolved unit conversion issues in the code or significant errors in the TOF readings from the robot and the rotation errors every 20 degrees.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <hr class="m-0" />
+
+            <!-- LAB 12 -->
+            <section class="resume-section" id="lab12">
+                <div class="resume-section-content">
+                    <h2 class="mb-5">LAB12: Path Planning and Execution</h2>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Lab Objective</h3>
+                            <p>Since this lab is quite open-ended, I chose to utilize another TOF sensor that I hadn't used before to implement a closed-loop bug algorithm.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Pseudocode</h3>
+                            <script src="https://gist.github.com/dyjin2/fe1dbe69ac9dda4553e6638bf2974807.js"></script>
+                            <p>In this way, the robot will execute a counterclockwise wall-following program, maintaining a distance of 90-110 millimeters from the wall on its right side. When encountering a 90° corner, it will perform a in place left turn.</p>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Arduino implementation</h3>
+                            <p>Here is my related arduino code of this bug algorithm.</p>
+                            <script src="https://gist.github.com/dyjin2/22a6f4ea92b81f225e3f36633dda2ee4.js"></script>
+                            <p>Unfortunately, due to time constraints, I wasn't able to test my program in the arena.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Acknowledgements</h3>
+                            <p>Thanks so much for Jonathan and all the TAs for their teaching and assistance throughout the semester, especially for providing us with ample time and guidance during lab sessions!</p>
                         </div>
                     </div>
 
